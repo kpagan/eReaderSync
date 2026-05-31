@@ -48,6 +48,16 @@
         .hidden {
             display: none;
         }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .info {
+            color: blue;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -62,9 +72,9 @@
         <button type="button" onclick="createRoom()">Generate Transfer Code</button>
         <h2 id="roomDisplay" style="letter-spacing: 2px;"></h2>
 
-        <form id="uploadForm" action="/api/upload" method="POST" enctype="multipart/form-data" style="display:none;">
+        <form id="uploadForm" enctype="multipart/form-data" style="display:none;">
             <input type="hidden" name="roomId" id="formRoomId">
-            <input type="file" name="file" accept=".epub,.pdf,.mobi" required><br>
+            <input type="file" name="file" accept=".epub,.pdf,.mobi,.txt,.cbz,.cbr" required><br>
             <button type="submit">Upload Book</button>
         </form>
     </div>
@@ -82,7 +92,7 @@
     </div>
 
     <div id="messages-container" class="box hidden">
-        <textarea id="messages" rows="10"></textarea>
+        <div id="messages"></div>
     </div>
 
     <script>
@@ -96,10 +106,17 @@
             var activeRoom = getQueryParam('room');
             if (activeRoom) {
                 document.getElementById('joinRoomId').value = activeRoom;
+                document.getElementById('roomDisplay').innerText = "Code: " + activeRoom;
                 loadRoomFiles(activeRoom);
             }
+            
+            // Handle file upload form submission
+            document.getElementById('uploadForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                uploadFile();
+            });
         } catch (err) {
-            log(err);
+            log(err, 'error');
         }
 
         function getQueryParam(name) {
@@ -127,6 +144,31 @@
                 });
         }
 
+        // Handle file upload with error handling
+        function uploadFile() {
+            var form = document.getElementById('uploadForm');
+            var formData = new FormData(form);
+            
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function (res) {
+                if (res.ok) {
+                    // On success, redirect
+                    window.location.href = '/?room=' + formData.get('roomId');
+                } else {
+                    // On error, read the error message
+                    return res.text().then(function(errorMsg) {
+                        throw new Error(errorMsg);
+                    });
+                }
+            })
+            .catch(function (err) {
+                log('Upload failed: ' + err.message, 'error');
+            });
+        }
+
         // e-Reader FIX: Uses old-school XMLHttpRequest (AJAX) which works natively on Kobo
         function loadRoomFiles(roomId) {
             var xhr = new XMLHttpRequest();
@@ -152,9 +194,14 @@
             xhr.send();
         }
 
-        function log(msg) {
+        function log(msg, type) {
+            if (typeof type === 'undefined' || type === null) {
+                type = 'info';
+            }
             document.getElementById("messages-container").classList.remove('hidden');
-            document.getElementById('messages').value += msg + '\n';
+            document.getElementById('messages').innerHTML += msg + '<br/>';
+            var msgClass = type === 'info' ? 'info' : 'error';
+            document.getElementById("messages").classList.add(msgClass);
         }
 
         function isDeviceAReader() {

@@ -23,7 +23,18 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const allowedFileExtensions = ['.epub', '.mobi', '.pdf', '.txt', '.cbz', '.cbr'];
+
+const fileFilter = (req, file, cb) => {
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    if (allowedFileExtensions.includes(fileExt)) {
+        cb(null, true);
+    } else {
+        cb(new Error('File type not allowed. Allowed types: EPUB, MOBI, PDF, TXT, CBZ, CBR.'));
+    }
+};
+
+const upload = multer({ storage: storage, fileFilter });
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -39,23 +50,26 @@ app.get('/api/create-room', (req, res) => {
 });
 
 									
-app.post('/api/upload', upload.single('file'), (req, res) => {
-    const { roomId } = req.body;
-						 
-    if (!rooms[roomId]) return res.status(404).send('Room not found.');
-	 
-    
-    // FIX: Re-decode the original name here as well
-    const safeUnicodeName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-    
-    const fileData = {
-        originalName: safeUnicodeName,
-        // The URL path needs to be URI encoded so the browser can request it properly
-        serverPath: `/download/${roomId}/${encodeURIComponent(req.file.filename)}`
-    };
-    
-    rooms[roomId].files.push(fileData);
-    res.redirect(`/?room=${roomId}`);
+app.post('/api/upload', (req, res, next) => {
+    upload.single('file')(req, res, function (err) {
+        if (err) return res.status(400).send(err.message);
+        const { roomId } = req.body;
+
+        if (!rooms[roomId]) return res.status(404).send('Room not found.');
+        if (!req.file) return res.status(400).send('No file uploaded.');
+
+        // FIX: Re-decode the original name here as well
+        const safeUnicodeName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+
+        const fileData = {
+            originalName: safeUnicodeName,
+            // The URL path needs to be URI encoded so the browser can request it properly
+            serverPath: `/download/${roomId}/${encodeURIComponent(req.file.filename)}`
+        };
+
+        rooms[roomId].files.push(fileData);
+        res.redirect(`/?room=${roomId}`);
+    });
 });
 
 // eReader FIX: Traditional POST route for joining a room without using JavaScript fetch
