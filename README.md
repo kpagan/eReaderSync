@@ -10,4 +10,28 @@ To install the application's dependencies run
 ## Run the application
 In a terminal run `npm start` to start the server.
 
-Then, open a browser to the url http://localhost:3000/ to view the page
+Then, open a browser to the url http://localhost:3000/ to view the page.
+
+## Docker
+Build the Docker image with:
+
+```bash
+docker build -t ereadersync:latest .
+```
+
+Run the container with the local `uploads` folder mounted as a volume:
+
+```bash
+docker run -p 3000:3000 -v "$PWD/uploads":/app/uploads ereadersync:latest
+```
+
+Open `http://localhost:3000/` in your browser.
+
+## Docker Compose
+Use Docker Compose to build and run the app with the `uploads` folder mounted:
+
+```bash
+docker compose up --build
+```
+
+Then visit `http://localhost:3000/`.
