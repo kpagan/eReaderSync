@@ -2,12 +2,14 @@
   "name": "ereadersync",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js",
-    "build": "babel public/src --out-dir public/dist --copy-files",
-    "build:watch": "babel public/src --out-dir public/dist --copy-files --watch"
+    "build:js": "babel src/public --out-dir dist/public --copy-files",
+    "build:assets": "node build.js",
+    "build": "npm run build:assets && npm run build:js",
+    "start": "npm run build && nodemon",
+    "build:watch": "nodemon --watch src --ext js,html --exec \"npm run build && node dist/server.js\""
   },
   "keywords": [],
   "author": "",

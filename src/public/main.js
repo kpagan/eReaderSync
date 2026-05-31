@@ -96,10 +96,7 @@ function loadRoomFiles(roomId) {
     xhr.send();
 }
 
-function log(msg, type) {
-    if (typeof type === 'undefined' || type === null) {
-        type = 'info';
-    }
+function log(msg, type = 'info') {
     document.getElementById("messages-container").classList.remove('hidden');
     document.getElementById('messages').innerHTML += msg + '<br/>';
     var msgClass = type === 'info' ? 'info' : 'error';

@@ -8,7 +8,7 @@ const PORT = 3000;
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const roomDir = path.join(__dirname, 'uploads', req.body.roomId);
+        const roomDir = path.join(__dirname, '..', 'uploads', req.body.roomId);
         if (!fs.existsSync(roomDir)) {
             fs.mkdirSync(roomDir, { recursive: true });
         }
@@ -36,7 +36,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage: storage, fileFilter });
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -92,7 +92,7 @@ app.get('/download/:roomId/:filename', (req, res) => {
     
     // Decode the filename coming from the URL path
     const decodedFilename = decodeURIComponent(filename);
-    const filePath = path.join(__dirname, 'uploads', roomId, decodedFilename);
+    const filePath = path.join(__dirname, '..', 'uploads', roomId, decodedFilename);
     
     if (fs.existsSync(filePath)) {
         // Strip the timestamp prefix when presenting the download file to the user
