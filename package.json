@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "build": "babel public/src --out-dir public/dist --copy-files",
+    "build:watch": "babel public/src --out-dir public/dist --copy-files --watch"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +16,10 @@
     "express": "^5.2.1",
     "multer": "^2.1.1",
     "nodemon": "^3.1.14"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.22.10",
+    "@babel/core": "^7.22.10",
+    "@babel/preset-env": "^7.22.10"
   }
 }
