@@ -31,7 +31,11 @@ Open `http://localhost:3000/` in your browser.
 Use Docker Compose to build and run the app with the `uploads` folder mounted:
 
 ```bash
-docker compose up --build
+export UPLOADS_BASE_PATH=/tmp && docker compose up
 ```
 
 Then visit `http://localhost:3000/`.
+
+## Transfer the Docker image to another machine
+
+See https://www.baeldung.com/ops/share-image-without-docker-hub

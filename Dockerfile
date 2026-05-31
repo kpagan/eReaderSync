@@ -1,5 +1,5 @@
 ARG NODE_VERSION=24.16.0
-FROM node:${NODE_VERSION} AS builder
+FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
 
 # Install dependencies (including dev deps needed for build)
@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM node:${NODE_VERSION} AS runner
+FROM node:${NODE_VERSION}-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
