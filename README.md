@@ -18,6 +18,50 @@ Build the Docker image with:
 ```bash
 docker build -t ereadersync:latest .
 ```
+### Or for multiplatform build:
+
+Build with cloud builder:
+
+**Prerequisites**: You've signed up for [Docker Build Cloud and created a builder](https://docs.docker.com/build-cloud/setup/)
+
+Connect builder to Docker Desktop:
+
+`docker buildx create --driver cloud <builder-name>`
+
+Build the image for linux/amd64 and linux/arm64 using Docker Build Cloud:
+```bash
+docker build \
+   --builder cloud-builder-name \
+   --platform linux/amd64,linux/arm64 \
+   -t ereadersync:latest \
+   --output ./bin .
+```
+This command builds the image using the cloud builder and exports the binaries to the bin directory.
+
+If an error `A required privilege is not held by the client.` appears the run the command from command prompt with Administrator privileges.
+
+Verify that the binaries are built for both platforms. You should see the nvim binary for both linux/amd64 and linux/arm64.
+
+```bash
+ $tree ./bin
+./bin
+├── linux_amd64
+│   ├── app
+│   └── ...
+└── linux_arm64
+    ├── app
+    └── ...
+X directories, Y files
+```
+
+To export the image to load to another device/platform run:
+```bash
+docker save --output ereadersync.tar --platform linux/arm64 ereadersync
+```
+Then copy the tar to the other device and load it:
+```bash
+ docker load --input ereadersync.tar
+ ```
 
 Run the container with the local `uploads` folder mounted as a volume:
 
