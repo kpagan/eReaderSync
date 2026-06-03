@@ -1,10 +1,11 @@
 services:
   ereadersync:
-    build:
-      context: .
+    image: ereadersync:latest
+    container_name: ereadersync
     ports:
       - 3000:3000
     volumes:
-      - ${UPLOADS_BASE_PATH}/uploads:/app/uploads
+      - ${UPLOADS_BASE_PATH:-/tmp}/uploads:/app/uploads
     environment:
       - NODE_ENV=production
+    restart: unless-stopped

@@ -13,6 +13,7 @@ In a terminal run `npm start` to start the server.
 Then, open a browser to the url http://localhost:3000/ to view the page.
 
 ## Docker
+### Build
 Build the Docker image with:
 
 ```bash
@@ -20,7 +21,11 @@ docker build -t ereadersync:latest .
 ```
 ### Or for multiplatform build:
 
-Build with cloud builder:
+#### 1. Build with Docker Desktop builder (default, simplest)
+```bash
+docker build --platform linux/amd64,linux/arm64 -t ereadersync:latest .
+```
+#### 2. Build with cloud builder (alternative):
 
 **Prerequisites**: You've signed up for [Docker Build Cloud and created a builder](https://docs.docker.com/build-cloud/setup/)
 
@@ -53,6 +58,7 @@ Verify that the binaries are built for both platforms. You should see the nvim b
     └── ...
 X directories, Y files
 ```
+## Transfer the Docker image to another machine without Docker hub
 
 To export the image to load to another device/platform run:
 ```bash
@@ -63,6 +69,9 @@ Then copy the tar to the other device and load it:
  docker load --input ereadersync.tar
  ```
 
+See https://www.baeldung.com/ops/share-image-without-docker-hub
+
+## Run the service
 Run the container with the local `uploads` folder mounted as a volume:
 
 ```bash
@@ -80,6 +89,4 @@ export UPLOADS_BASE_PATH=/tmp && docker compose up
 
 Then visit `http://localhost:3000/`.
 
-## Transfer the Docker image to another machine
 
-See https://www.baeldung.com/ops/share-image-without-docker-hub
