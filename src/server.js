@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
         const safeUnicodeName = Buffer.from(file.originalname, 'latin1').toString('utf8');
         
         // Save locally using a clean timestamp prefix to avoid conflicts
-        cb(null, Date.now() + '-' + safeUnicodeName);
+        cb(null, safeUnicodeName);
     }
 });
 
@@ -64,7 +64,7 @@ app.post('/api/upload', (req, res, next) => {
         const fileData = {
             originalName: safeUnicodeName,
             // The URL path needs to be URI encoded so the browser can request it properly
-            serverPath: `/download/${roomId}/${encodeURIComponent(req.file.filename)}`
+            serverPath: `/${encodeURIComponent(req.file.filename)}?roomId=${roomId}`
         };
 
         rooms[roomId].files.push(fileData);
@@ -87,19 +87,26 @@ app.get('/api/room/:roomId', (req, res) => {
 });
 
 // Download Route
-app.get('/download/:roomId/:filename', (req, res) => {
-    const { roomId, filename } = req.params;
+app.get('/:filename', (req, res, next) => {
+    const roomId = req.query.roomId;
+    if (!roomId) return next(); // If no roomId query, pass to next route (e.g. static files)
+
+    // the only way to get the correct filename in the eReader device properly
+    // is to pass it directly in the download link. The headers have no effect
+    const filename = req.params.filename;
     
-    // Decode the filename coming from the URL path
+    const room = rooms[roomId];
+    if (!room) return res.status(404).send('Room not found.');
+    const fileEntry = room.files.find(f => f.serverPath.includes(encodeURIComponent(filename)));
+    if (!fileEntry) return res.status(404).send('File not found in room.');
+
+    // Decode the filename coming from the URL path 
     const decodedFilename = decodeURIComponent(filename);
     const filePath = path.join(__dirname, '..', 'uploads', roomId, decodedFilename);
     
     if (fs.existsSync(filePath)) {
-        // Strip the timestamp prefix when presenting the download file to the user
-        const originalName = decodedFilename.replace(/^\d+-/, '');
-        
         // FIX: Force RFC 5987 standard for content-disposition header to support Unicode names across all browsers
-        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(originalName)}`);
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(decodedFilename)}`);
         res.sendFile(filePath);
     } else {
         res.status(404).send('File not found.');
