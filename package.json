@@ -4,24 +4,24 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --exec babel-node index.js",
     "build:js": "babel src/public --out-dir dist/public --copy-files",
     "build:assets": "node build.js",
     "build": "npm run build:assets && npm run build:js",
-    "start": "npm run build && nodemon",
-    "build:watch": "nodemon --watch src --ext js,html --exec \"npm run build && node dist/server.js\""
+    "start": "nodemon"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^5.2.1",
-    "multer": "^2.1.1",
-    "nodemon": "^3.1.14"
+    "multer": "^2.1.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.22.10",
-    "@babel/core": "^7.22.10",
-    "@babel/preset-env": "^7.22.10"
+    "@babel/cli": "^8.0.1",
+    "@babel/core": "^8.0.1",
+    "@babel/node": "^8.0.1",
+    "@babel/preset-env": "^8.0.2",
+    "nodemon": "^3.1.14"
   }
 }

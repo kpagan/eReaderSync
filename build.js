@@ -45,9 +45,4 @@ ensureDir(distPublicDir);
 copyAssets(srcPublicDir, distPublicDir);
 copyFile(path.join(srcDir, 'server.js'), path.join(distDir, 'server.js'));
 
-console.log('Transpiling public JavaScript...');
-execSync('npx babel src/public --out-dir dist/public --copy-files', {
-  stdio: 'inherit',
-});
-
 console.log('Build complete.');
