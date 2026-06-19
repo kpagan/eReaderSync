@@ -34,15 +34,18 @@ function copyAssets(srcPath, destPath) {
       if (entry.name === 'src') return;
       copyAssets(sourceEntry, destEntry);
     } else {
+      console.log(`Copying ${sourceEntry} to ${destEntry}`);
       copyFile(sourceEntry, destEntry);
     }
   });
 }
 
-console.log('Building dist output...');
+console.log('Cleaning dist folder...');
 rmDir(distDir);
+console.log('Creating dist folder...');
 ensureDir(distPublicDir);
+console.log('Copying files...');
 copyAssets(srcPublicDir, distPublicDir);
 copyFile(path.join(srcDir, 'server.js'), path.join(distDir, 'server.js'));
 
-console.log('Build complete.');
+console.log('Copy complete.');
