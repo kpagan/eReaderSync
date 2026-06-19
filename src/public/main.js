@@ -11,9 +11,9 @@ try {
         document.getElementById('roomDisplay').innerText = "Code: " + activeRoom;
         loadRoomFiles(activeRoom);
     }
-    
+
     // Handle file upload form submission
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    document.getElementById('uploadForm').addEventListener('submit', function (e) {
         e.preventDefault();
         uploadFile();
     });
@@ -50,25 +50,25 @@ function createRoom() {
 function uploadFile() {
     var form = document.getElementById('uploadForm');
     var formData = new FormData(form);
-    
+
     fetch('/api/upload', {
         method: 'POST',
         body: formData
     })
-    .then(function (res) {
-        if (res.ok) {
-            // On success, redirect
-            window.location.href = '/?room=' + formData.get('roomId');
-        } else {
-            // On error, read the error message
-            return res.text().then(function(errorMsg) {
-                throw new Error(errorMsg);
-            });
-        }
-    })
-    .catch(function (err) {
-        log('Upload failed: ' + err.message, 'error');
-    });
+        .then(function (res) {
+            if (res.ok) {
+                // On success, redirect
+                window.location.href = '/?room=' + formData.get('roomId');
+            } else {
+                // On error, read the error message
+                return res.text().then(function (errorMsg) {
+                    throw new Error(errorMsg);
+                });
+            }
+        })
+        .catch(function (err) {
+            log('Upload failed: ' + err.message, 'error');
+        });
 }
 
 // e-Reader FIX: Uses old-school XMLHttpRequest (AJAX) which works natively on Kobo
@@ -86,6 +86,8 @@ function loadRoomFiles(roomId) {
                 return;
             }
 
+            updateExpirationCountdown(data.expiresIn);
+
             data.files.forEach(function (file) {
                 var li = document.createElement('li');
                 li.innerHTML = '<a href="' + file.serverPath + '" download>📥 Download ' + file.originalName + '</a>';
@@ -94,6 +96,22 @@ function loadRoomFiles(roomId) {
         }
     };
     xhr.send();
+}
+
+function updateExpirationCountdown(expirationTime) {
+    var timer = expirationTime;
+    var countdownElement = document.getElementById('expirationCountdown');
+    countdownElement.textContent = timer;
+    var expirationElement = document.getElementById("expirationInfo");
+    expirationElement.classList.remove('hidden');
+    var expirationInterval = setInterval(function () {
+        countdownElement.textContent = --timer;
+
+        if (timer <= 0) {
+            clearInterval(expirationInterval);
+            expirationElement.innerHTML = "EXPIRED";
+        }
+    }, 60 * 1000); // Update every minute
 }
 
 function log(msg, type = 'info') {

@@ -5,6 +5,7 @@ const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
+const expirationTime = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -67,10 +68,25 @@ app.post('/api/upload', (req, res, next) => {
             serverPath: `/${encodeURIComponent(req.file.filename)}?roomId=${roomId}`
         };
 
+        const timeoutHandle = setTimeout(() => cleanupRoom(roomId), expirationTime);
         rooms[roomId].files.push(fileData);
+        rooms[roomId].timeoutHandle = timeoutHandle;
         res.redirect(`/?room=${roomId}`);
     });
 });
+
+function cleanupRoom(roomId) {
+    console.log(`Cleaning up room ${roomId}`);
+    if (rooms[roomId]) {
+        clearTimeout(rooms[roomId].timeoutHandle);
+        const roomDir = path.join(__dirname, '..', 'uploads', roomId);
+        if (fs.existsSync(roomDir)) {
+            console.log(`Deleting directory: ${roomDir}`);
+            fs.rmSync(roomDir, { recursive: true, force: true });
+        }  
+        delete rooms[roomId];
+    }
+}
 
 // eReader FIX: Traditional POST route for joining a room without using JavaScript fetch
 app.post('/join-room', (req, res) => {
@@ -83,7 +99,10 @@ app.post('/join-room', (req, res) => {
 app.get('/api/room/:roomId', (req, res) => {
     const { roomId } = req.params;
     if (!rooms[roomId]) return res.json({ error: 'Room empty or expired', files: [] });
-    res.json(rooms[roomId]);
+    res.json({
+        files: rooms[roomId].files,
+        expiresIn: expirationTime / 60 / 1000 // minutes
+    });
 });
 
 // Download Route
