@@ -71,6 +71,7 @@ app.post('/api/upload', (req, res, next) => {
         const timeoutHandle = setTimeout(() => cleanupRoom(roomId), expirationTime);
         rooms[roomId].files.push(fileData);
         rooms[roomId].timeoutHandle = timeoutHandle;
+        rooms[roomId].expirationTime = Date.now() + expirationTime;
         res.redirect(`/?room=${roomId}`);
     });
 });
@@ -99,9 +100,14 @@ app.post('/join-room', (req, res) => {
 app.get('/api/room/:roomId', (req, res) => {
     const { roomId } = req.params;
     if (!rooms[roomId]) return res.json({ error: 'Room empty or expired', files: [] });
+    
+    // Calculate remaining time in seconds based on actual expiration timestamp
+    const remainingMs = rooms[roomId].expirationTime - Date.now();
+    const expiresInSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+    
     res.json({
         files: rooms[roomId].files,
-        expiresIn: expirationTime / 60 / 1000 // minutes
+        expiresInSeconds: expiresInSeconds
     });
 });
 

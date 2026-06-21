@@ -86,7 +86,7 @@ function loadRoomFiles(roomId) {
                 return;
             }
 
-            updateExpirationCountdown(data.expiresIn);
+            updateExpirationCountdown(data.expiresInSeconds);
 
             data.files.forEach(function (file) {
                 var li = document.createElement('li');
@@ -98,20 +98,27 @@ function loadRoomFiles(roomId) {
     xhr.send();
 }
 
-function updateExpirationCountdown(expirationTime) {
-    var timer = expirationTime;
+function updateExpirationCountdown(expirationSeconds) {
+    var timer = expirationSeconds;
     var countdownElement = document.getElementById('expirationCountdown');
-    countdownElement.textContent = timer;
+    countdownElement.textContent = formatTime(timer);
     var expirationElement = document.getElementById("expirationInfo");
     expirationElement.classList.remove('hidden');
     var expirationInterval = setInterval(function () {
-        countdownElement.textContent = --timer;
+        timer--;
+        countdownElement.textContent = formatTime(timer);
 
         if (timer <= 0) {
             clearInterval(expirationInterval);
             expirationElement.innerHTML = "EXPIRED";
         }
-    }, 60 * 1000); // Update every minute
+    }, 1000); // Update every second
+}
+
+function formatTime(seconds) {
+    var mins = Math.floor(seconds / 60);
+    var secs = seconds % 60;
+    return mins + 'm ' + (secs < 10 ? '0' : '') + secs + 's';
 }
 
 function log(msg, type = 'info') {
