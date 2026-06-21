@@ -89,6 +89,47 @@ function cleanupRoom(roomId) {
     }
 }
 
+// Periodic cleanup: Remove orphaned files every 1 hour
+function periodicCleanup() {
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    
+    if (!fs.existsSync(uploadsDir)) {
+        return;
+    }
+
+    try {
+        const directories = fs.readdirSync(uploadsDir);
+        let deletedCount = 0;
+
+        directories.forEach(dir => {
+            const dirPath = path.join(uploadsDir, dir);
+            const stats = fs.statSync(dirPath);
+
+            if (stats.isDirectory()) {
+                // Check if this directory corresponds to an active room
+                if (!rooms[dir]) {
+                    console.log(`[Periodic Cleanup] Removing orphaned directory: ${dir}`);
+                    try {
+                        fs.rmSync(dirPath, { recursive: true, force: true });
+                        deletedCount++;
+                    } catch (err) {
+                        console.error(`[Periodic Cleanup] Failed to delete ${dirPath}:`, err.message);
+                    }
+                }
+            }
+        });
+
+        if (deletedCount > 0) {
+            console.log(`[Periodic Cleanup] Completed - Deleted ${deletedCount} orphaned folder(s)`);
+        }
+    } catch (err) {
+        console.error('[Periodic Cleanup] Error during cleanup:', err.message);
+    }
+}
+
+// Start periodic cleanup interval (every 1 hour = 3600000 milliseconds)
+const cleanupInterval = setInterval(periodicCleanup, 3600000);
+
 // eReader FIX: Traditional POST route for joining a room without using JavaScript fetch
 app.post('/join-room', (req, res) => {
     const roomId = req.body.roomId;
@@ -140,4 +181,17 @@ app.get('/:filename', (req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
+});
+
+// Graceful shutdown: Clear cleanup interval
+process.on('SIGINT', () => {
+    console.log('\nShutting down server...');
+    clearInterval(cleanupInterval);
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('\nServer terminating...');
+    clearInterval(cleanupInterval);
+    process.exit(0);
 });
